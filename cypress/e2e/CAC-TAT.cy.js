@@ -6,18 +6,23 @@ describe('Central de Atendimento ao Cliente TAT', () => {
     cy.title().should('be.equal','Central de Atendimento ao Cliente TAT')
   })
 
-  it('preenche os campos obrigatórios e envia o formulário',() =>{
-    const longText = Cypress._.repeat('ontrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC', 10) // Cypress._ (modulo cypress, permite chamar algumas funçoes) repeat - funcao que repete o texto 10x
+  Cypress._.times(3, ()=>{ // funcao(_.times) do lodash(lib JS) executa um funcao callback por um numero de vezes, passado no primeiro argumento(3), o segundo argumento recebe a funcao que deverá ser executada (o bloco it abaixo)
+    it('preenche os campos obrigatórios e envia o formulário',() =>{
 
-    cy.get('#firstName').type('luana')
-    cy.get('#lastName').type('mozzer')
-    cy.get('#email').type('luana@teste.com') 
-    cy.get('#open-text-area').type( longText, {delay:0,})
-    cy.get('button[type="submit"]').click()
+      const longText = Cypress._.repeat('ontrary to popular belief, Lorem Ipsum is not simply random text. It has roots in a piece of classical Latin literature from 45 BC', 10) // Cypress._ (lodash)(é uma lib JS, permite chamar algumas funçoes) _.repeat: funcao que repete o texto 10x
+  
+      cy.get('#firstName').type('luana')
+      cy.get('#lastName').type('mozzer')
+      cy.get('#email').type('luana@teste.com') 
+      cy.get('#open-text-area').type( longText, {delay:0,})
+      cy.get('button[type="submit"]').click()
+  
+      cy.get('.success').should('be.visible')
+      
+    })
 
-    cy.get('.success').should('be.visible')
-    
-  })
+  })  
+  
 
   it('exibe mensagem de erro ao submeter o formulário com um email com formatação inválida', ()=>{
     cy.get('#firstName').type('luana')
@@ -72,6 +77,8 @@ describe('Central de Atendimento ao Cliente TAT', () => {
   })
 
   it('exibe mensagem de erro quando o telefone se torna obrigatório mas não é preenchido antes do envio do formulário (personalizado)', ()=>{
+    cy.clock() // funcao que congela o relogio do navegador
+
    const data ={
     firstName: 'esther',
     lastName: 'gomes',
@@ -80,7 +87,12 @@ describe('Central de Atendimento ao Cliente TAT', () => {
    cy.ErrorMessageMandatoryFieldNotFilled(data)
 
     cy.get('.error').should('be.visible')
+
+    cy.tick(3000) // funcao acelara o tempo em 3s
+    cy.get('.error').should('not.be.visible')
+    
   })
+
   /// selecionando menus suspensos/dropdown
   /// sendo selecionado por texto,value e indice
   it('seleciona um produto (YouTube) por seu texto', ()=>{
@@ -157,4 +169,34 @@ describe('Central de Atendimento ao Cliente TAT', () => {
     cy.contains('a', 'Política de Privacidade').click()
     cy.contains('h1','CAC TAT - Política de Privacidade').should('be.visible')
   })
+
+  it('exibe e oculta as mensagens de sucesso e erro usando .invoke()', () => {
+    cy.get('.success')
+      .should('not.be.visible')
+      .invoke('show') // forca o elemento a ficar visivel
+      .should('be.visible')
+      .and('contain', 'Mensagem enviada com sucesso.')
+      .invoke('hide') // forca o elemento a sumir da tela
+      .should('not.be.visible')
+    cy.get('.error')
+      .should('not.be.visible')
+      .invoke('show')
+      .should('be.visible')
+      .and('contain', 'Valide os campos obrigatórios!')
+      .invoke('hide')
+      .should('not.be.visible')
+  })
+  
+  it('preenche o campo da área de texto usando o comando invoke', ()=>{
+    cy.get('#open-text-area').invoke('val', 'testandoooo')
+        .should('have.value', 'testandoooo')
+    
+  })
+
+  it.only('encontra o gato escondido na aplicacao', ()=>{
+    cy.get('#cat').invoke('show')
+    .should('be.visible')
+   cy.get('#title').invoke('text','CAT TAT') // altera o texto/titulo 
+  })
+
 })
